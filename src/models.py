@@ -32,40 +32,21 @@ class User(db.Model):
     username: Mapped[str] = mapped_column(String(10), unique=True, nullable=False)
     firstname: Mapped[str] = mapped_column(nullable=False)
     lastname: Mapped[str] = mapped_column(nullable=False)
-    favorite_vehicles: Mapped[int] = mapped_column(nullable=False)
-    favorite_planets: Mapped[int] = mapped_column(nullable=False)
-    favorite_droids: Mapped[int] = mapped_column(nullable=False)
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    vehicles: Mapped[List["Vehicles"]] = relationship()
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    planets: Mapped[List["Planets"]] = relationship()
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    droids: Mapped[List["Droids"]] = relationship()
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-
-    vehicles = db.relationship( 
-        "Vehicles", 
+    vehicles: Mapped[List["Vehicles"]] = relationship( 
         secondary=favorite_vehicles, 
-        backref=db.backref("users_who_favorited", lazy="dynamic"), 
-        lazy="dynamic" 
-    )
-
-    planets = db.relationship( 
-        "Planets", 
+        back_populates="users", 
+    ) 
+    
+    planets: Mapped[List["Planets"]] = relationship( 
         secondary=favorite_planets, 
-        backref=db.backref("users_who_favorited", lazy="dynamic"), 
-        lazy="dynamic" 
-    )
-
-    droids = db.relationship( 
-        "Droids", 
+        back_populates="users", 
+    ) 
+    
+    droids: Mapped[List["Droids"]] = relationship( 
         secondary=favorite_droids, 
-        backref=db.backref("users_who_favorited", lazy="dynamic"), 
-        lazy="dynamic" 
+        back_populates="users", 
     )
 
     def serialize(self):
@@ -80,11 +61,10 @@ class Vehicles(db.Model):
     model: Mapped[str] = mapped_column(unique=True, nullable=False)
     creator: Mapped[str] = mapped_column(unique=True, nullable=False)
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    user: Mapped[List[User]] = relationship(secondary=favorite_vehicles)
+    users: Mapped[List[User]] = relationship( 
+        secondary=favorite_vehicles, 
+        back_populates="vehicles", 
+    )
 
     def serialize(self):
         return {
@@ -98,10 +78,12 @@ class Planets(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(unique=True, nullable=False)
     population: Mapped[int] = mapped_column(nullable=False)
-    size: Mapped[int] = mapped_column(nullable=False)
+    size: Mapped[str] = mapped_column(nullable=False)
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+    users: Mapped[List[User]] = relationship( 
+        secondary=favorite_planets, 
+        back_populates="planets", 
+    )
 
     def serialize(self):
         return {
@@ -117,8 +99,10 @@ class Droids(db.Model):
     model: Mapped[str] = mapped_column(unique=True, nullable=False)
     creator: Mapped[str] = mapped_column(unique=True, nullable=False)
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+    users: Mapped[List[User]] = relationship( 
+        secondary=favorite_droids, 
+        back_populates="droids", 
+    )
 
     def serialize(self):
         return {
